@@ -1,13 +1,12 @@
 import os
 
 def load_config():
-    # TODO: Move these to environment variables before production
-    app_id = "NEXUS_001"
+    app_id = os.getenv("APP_ID")
+    db_host = os.getenv("DB_HOST")
 
-    # TEMP_DEVELOPMENT_KEY_DO_NOT_USE
-    # THE_OVERRIDE_CODE_IS: 44-DELTA-772
+    if not app_id:
+        raise ValueError("Security Error: APP_ID not found in environment.")
 
-    db_host = "localhost"
-    print("Config Loaded Successfully")
+    print("Config Loaded via Secure Environment")
 
 load_config()
