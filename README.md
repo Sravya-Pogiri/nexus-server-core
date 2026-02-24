@@ -6,5 +6,5 @@ Unauthorized access is strictly prohibited.
 
 ## Current Tasks:
 - [x] Initialize Repository
-- [ ] Configure Load Balancer
-- [ ] Secure API Endpoints
+- [x] Configure Load Balancer
+- [x] Secure API Endpoints
