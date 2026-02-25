@@ -9,12 +9,12 @@
     <style>
         body {
             background-color: #020617;
-            color: #deff9a;
+            color: #ff4444;
             font-family: 'Azeret Mono', monospace;
             overflow-x: hidden;
         }
         .terminal-glow {
-            text-shadow: 0 0 10px rgba(222, 255, 154, 0.5);
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
         }
         .crt-overlay {
             position: fixed;
@@ -28,7 +28,7 @@
             width: 100%;
             height: 100px;
             z-index: 51;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(222, 255, 154, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 68, 68, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
             opacity: 0.1;
             position: absolute;
             bottom: 100%;
@@ -40,7 +40,7 @@
         }
         input:focus, textarea:focus {
             outline: none;
-            box-shadow: 0 0 15px rgba(222, 255, 154, 0.3);
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
         }
         .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn {
@@ -49,13 +49,13 @@
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #deff9a; }
+        ::-webkit-scrollbar-thumb { background: #ff4444; }
         
         .code-editor {
             background: #000;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
-            border: 1px solid #334155;
+            border: 1px solid #450a0a;
             padding: 10px;
             width: 100%;
             min-height: 150px;
@@ -77,11 +77,11 @@
     <div class="crt-overlay"></div>
     <div class="scanline"></div>
 
-    <div class="max-w-3xl mx-auto border border-[#deff9a] p-6 bg-[#020617]/80 backdrop-blur-sm relative z-10 shadow-2xl">
-        <header class="mb-8 border-b border-[#deff9a] pb-4 flex justify-between items-end">
+    <div class="max-w-3xl mx-auto border border-red-500 p-6 bg-[#020617]/80 backdrop-blur-sm relative z-10 shadow-2xl">
+        <header class="mb-8 border-b border-red-500 pb-4 flex justify-between items-end">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold terminal-glow">SYSTEM RECOVERY COMMAND</h1>
-                <p class="text-xs opacity-70">AUTH: LEVEL-4-SRE | STATUS: EMERGENCY_LOCKDOWN</p>
+                <p class="text-xs opacity-70 text-red-400">AUTH: LEVEL-4-SRE | STATUS: EMERGENCY_LOCKDOWN</p>
             </div>
             <div id="timer-display" class="hidden text-xl font-bold">00:00</div>
         </header>
@@ -91,13 +91,13 @@
             <div id="setup-section" class="fade-in">
                 <p class="mb-4">Initialize recovery session by entering your Team Designation:</p>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" id="team-name" placeholder="TEAM_ID" class="bg-transparent border border-[#deff9a] p-2 flex-grow uppercase">
-                    <button onclick="startGame()" class="bg-[#deff9a] text-black px-6 py-2 font-bold hover:bg-white transition-colors">START SESSION</button>
+                    <input type="text" id="team-name" placeholder="TEAM_ID" class="bg-transparent border border-red-500 p-2 flex-grow uppercase">
+                    <button onclick="startGame()" class="bg-red-600 text-white px-6 py-2 font-bold hover:bg-red-500 transition-colors">START SESSION</button>
                 </div>
             </div>
 
             <!-- Lockout Message -->
-            <div id="lockout-notice" class="hidden bg-red-900/30 border border-red-500 p-4 mb-6 text-center animate-pulse">
+            <div id="lockout-notice" class="hidden bg-red-950/50 border border-red-500 p-4 mb-6 text-center animate-pulse">
                 <h3 class="text-red-500 font-bold text-lg">SECURITY BREACH DETECTED</h3>
                 <p class="text-xs text-red-200 mb-2">Too many incorrect attempts. System locked for security.</p>
                 <div class="text-3xl font-bold text-red-500" id="lockout-timer">01:30</div>
@@ -107,24 +107,24 @@
             <div id="puzzle-section" class="hidden">
                 <div id="puzzle-ui-container">
                     <div class="mb-6">
-                        <span class="text-xs bg-[#deff9a] text-black px-2 py-1" id="phase-badge">PHASE 01</span>
-                        <h2 class="text-xl mt-4 font-bold border-b border-[#deff9a]/30 pb-2" id="puzzle-title">SYSTEM DIAGNOSTICS</h2>
+                        <span class="text-xs bg-red-600 text-white px-2 py-1" id="phase-badge">PHASE 01</span>
+                        <h2 class="text-xl mt-4 font-bold border-b border-red-500/30 pb-2 text-red-400" id="puzzle-title">SYSTEM DIAGNOSTICS</h2>
                     </div>
                     
                     <div id="puzzle-content" class="mb-8 text-sm leading-relaxed max-h-[400px] overflow-y-auto pr-2">
                         <!-- Dynamic Content -->
                     </div>
 
-                    <div id="input-container" class="bg-[#1e293b] p-4 border border-[#334155] mb-6 shadow-inner">
+                    <div id="input-container" class="bg-[#450a0a]/20 p-4 border border-red-900/50 mb-6 shadow-inner">
                         <label id="input-label" class="block text-xs mb-2 opacity-70">ENTER DECRYPTION KEY:</label>
                         <div id="input-slot">
-                            <input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-[#deff9a] w-full p-2 text-xl font-bold tracking-widest uppercase" autocomplete="off">
+                            <input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-red-500 w-full p-2 text-xl font-bold tracking-widest uppercase text-red-400" autocomplete="off">
                         </div>
                     </div>
 
                     <div id="feedback" class="h-6 text-sm mb-4 font-bold"></div>
 
-                    <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-[#deff9a] text-black py-4 font-bold hover:bg-white transition-all transform active:scale-95 shadow-lg">SUBMIT HANDSHAKE</button>
+                    <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-red-600 text-white py-4 font-bold hover:bg-red-500 transition-all transform active:scale-95 shadow-lg">SUBMIT HANDSHAKE</button>
                 </div>
             </div>
 
@@ -133,7 +133,7 @@
                 <div class="text-6xl mb-6">🔓</div>
                 <h2 class="text-4xl font-bold mb-4 terminal-glow">SYSTEM RESTORED</h2>
                 <p class="mb-8 opacity-80">The logic bomb has been neutralized. Nexus Core is stable.</p>
-                <div class="border-2 border-[#deff9a] p-6 inline-block bg-[#deff9a]/5">
+                <div class="border-2 border-red-500 p-6 inline-block bg-red-500/5">
                     <p class="text-xs mb-2 opacity-70">FINAL RECOVERY TIME:</p>
                     <p class="text-3xl font-bold" id="final-time">00:00:00</p>
                 </div>
@@ -198,8 +198,8 @@
                 badge: "PHASE 01",
                 instructions: `
                     <div class="space-y-4">
-                        <p class="italic text-[#deff9a]/80">"Trace the status pins through the schematic."</p>
-                        <div class="bg-black/40 p-3 border border-[#deff9a]/20 text-xs">
+                        <p class="italic text-red-300">"Trace the status pins through the schematic."</p>
+                        <div class="bg-black/40 p-3 border border-red-500/20 text-xs">
                             <p class="font-bold mb-1">INPUT KEY: A=1, B=0, C=1, D=1</p>
                             <p>BIT 1: (A AND B) OR C</p>
                             <p>BIT 2: (NOT B) AND D</p>
@@ -215,8 +215,8 @@
                 badge: "PHASE 02",
                 instructions: `
                     <div class="space-y-4">
-                        <p class="italic text-[#deff9a]/80">"Scrub the Git logs."</p>
-                        <a href="https://github.com/Sravya-Pogiri/nexus-server-core" target="_blank" class="underline block text-blue-400 text-xs">github.com/Sravya-Pogiri/nexus-server-core</a>
+                        <p class="italic text-red-300">"Scrub the Git logs."</p>
+                        <a href="https://github.com/Sravya-Pogiri/nexus-server-core" target="_blank" class="underline block text-red-400 text-xs">github.com/Sravya-Pogiri/nexus-server-core</a>
                         <p class="text-xs">Find the removed key in 'config_loader.py' commit history.</p>
                     </div>
                 `,
@@ -225,7 +225,7 @@
             {
                 title: "INFRASTRUCTURE BRIDGE",
                 badge: "PHASE 03",
-                instructions: `<p class="text-xs">Trace the port mapping grid. What character is formed?</p>`,
+                instructions: `<p class="text-xs text-red-300">Trace the port mapping grid. What character is formed?</p>`,
                 answer: "OA==" // 8
             },
             {
@@ -235,7 +235,7 @@
                     <div class="space-y-4">
                         <p class="font-bold">PROBLEM: CONTAINS DUPLICATE</p>
                         <p class="text-xs opacity-80">Complete the function below. It must return <code class="text-white">true</code> if the array <code class="text-white">nums</code> has any duplicates, <code class="text-white">false</code> otherwise.</p>
-                        <p class="text-xs text-[#deff9a]">TESTING AGAINST: [1, 5, 9, 12, 1, 3]</p>
+                        <p class="text-xs text-red-400">TESTING AGAINST: [1, 5, 9, 12, 1, 3]</p>
                     </div>
                 `,
                 isCode: true,
@@ -281,7 +281,7 @@
                 document.getElementById('submit-btn').innerText = "COMPILE & EXECUTE";
             } else {
                 document.getElementById('input-label').innerText = "ENTER DECRYPTION KEY:";
-                slot.innerHTML = `<input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-[#deff9a] w-full p-2 text-xl font-bold tracking-widest uppercase" autocomplete="off">`;
+                slot.innerHTML = `<input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-red-500 w-full p-2 text-xl font-bold tracking-widest uppercase text-red-400" autocomplete="off">`;
                 document.getElementById('submit-btn').innerText = "SUBMIT HANDSHAKE";
                 document.getElementById('puzzle-input').focus();
                 
@@ -312,7 +312,7 @@
                     document.getElementById('lockout-notice').classList.add('hidden');
                     document.getElementById('submit-btn').disabled = false;
                     document.getElementById('feedback').innerText = "> SYSTEM REBOOTED. READY FOR INPUT.";
-                    document.getElementById('feedback').className = "text-blue-400";
+                    document.getElementById('feedback').className = "text-red-400";
                     
                     const input = document.getElementById('puzzle-input');
                     if (input) input.focus();
