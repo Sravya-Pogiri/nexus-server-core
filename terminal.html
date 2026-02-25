@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617;
+            color: #deff9a;
+            font-family: 'Azeret Mono', monospace;
+            overflow-x: hidden;
+        }
+        .terminal-glow {
+            text-shadow: 0 0 10px rgba(222, 255, 154, 0.5);
+        }
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 51;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(222, 255, 154, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+        }
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(222, 255, 154, 0.3);
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #deff9a; }
+        
+        .code-editor {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #334155;
+            padding: 10px;
+            width: 100%;
+            min-height: 150px;
+            resize: none;
+        }
+
+        .lockout-active {
+            filter: grayscale(1) contrast(0.5);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        #lockout-timer {
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+
+    <div class="max-w-3xl mx-auto border border-[#deff9a] p-6 bg-[#020617]/80 backdrop-blur-sm relative z-10 shadow-2xl">
+        <header class="mb-8 border-b border-[#deff9a] pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold terminal-glow">SYSTEM RECOVERY COMMAND</h1>
+                <p class="text-xs opacity-70">AUTH: LEVEL-4-SRE | STATUS: EMERGENCY_LOCKDOWN</p>
+            </div>
+            <div id="timer-display" class="hidden text-xl font-bold">00:00</div>
+        </header>
+
+        <div id="game-container">
+            <!-- Team Setup -->
+            <div id="setup-section" class="fade-in">
+                <p class="mb-4">Initialize recovery session by entering your Team Designation:</p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="text" id="team-name" placeholder="TEAM_ID" class="bg-transparent border border-[#deff9a] p-2 flex-grow uppercase">
+                    <button onclick="startGame()" class="bg-[#deff9a] text-black px-6 py-2 font-bold hover:bg-white transition-colors">START SESSION</button>
+                </div>
+            </div>
+
+            <!-- Lockout Message -->
+            <div id="lockout-notice" class="hidden bg-red-900/30 border border-red-500 p-4 mb-6 text-center animate-pulse">
+                <h3 class="text-red-500 font-bold text-lg">SECURITY BREACH DETECTED</h3>
+                <p class="text-xs text-red-200 mb-2">Too many incorrect attempts. System locked for security.</p>
+                <div class="text-3xl font-bold text-red-500" id="lockout-timer">01:30</div>
+            </div>
+
+            <!-- Puzzle Sections -->
+            <div id="puzzle-section" class="hidden">
+                <div id="puzzle-ui-container">
+                    <div class="mb-6">
+                        <span class="text-xs bg-[#deff9a] text-black px-2 py-1" id="phase-badge">PHASE 01</span>
+                        <h2 class="text-xl mt-4 font-bold border-b border-[#deff9a]/30 pb-2" id="puzzle-title">SYSTEM DIAGNOSTICS</h2>
+                    </div>
+                    
+                    <div id="puzzle-content" class="mb-8 text-sm leading-relaxed max-h-[400px] overflow-y-auto pr-2">
+                        <!-- Dynamic Content -->
+                    </div>
+
+                    <div id="input-container" class="bg-[#1e293b] p-4 border border-[#334155] mb-6 shadow-inner">
+                        <label id="input-label" class="block text-xs mb-2 opacity-70">ENTER DECRYPTION KEY:</label>
+                        <div id="input-slot">
+                            <input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-[#deff9a] w-full p-2 text-xl font-bold tracking-widest uppercase" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div id="feedback" class="h-6 text-sm mb-4 font-bold"></div>
+
+                    <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-[#deff9a] text-black py-4 font-bold hover:bg-white transition-all transform active:scale-95 shadow-lg">SUBMIT HANDSHAKE</button>
+                </div>
+            </div>
+
+            <!-- Final Victory -->
+            <div id="victory-section" class="hidden text-center fade-in">
+                <div class="text-6xl mb-6">🔓</div>
+                <h2 class="text-4xl font-bold mb-4 terminal-glow">SYSTEM RESTORED</h2>
+                <p class="mb-8 opacity-80">The logic bomb has been neutralized. Nexus Core is stable.</p>
+                <div class="border-2 border-[#deff9a] p-6 inline-block bg-[#deff9a]/5">
+                    <p class="text-xs mb-2 opacity-70">FINAL RECOVERY TIME:</p>
+                    <p class="text-3xl font-bold" id="final-time">00:00:00</p>
+                </div>
+                <p class="mt-8 text-sm animate-pulse">Present this screen to the Proctor to claim rewards.</p>
+                <p id="team-record" class="mt-2 text-xs opacity-50"></p>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-[10px] opacity-40 flex justify-between">
+            <span>&copy; 2026 NEXUS_CYBER_SEC</span>
+            <span id="system-time"></span>
+        </footer>
+    </div>
+
+    <script>
+        let currentPhase = 0;
+        let startTime;
+        let timerInterval;
+        let lockoutInterval;
+        let teamId = "";
+        let isLocked = false;
+
+        const puzzles = [
+            {
+                title: "SYSTEM DIAGNOSTICS: LOGIC BASICS",
+                badge: "DIAG 01",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 1:</strong> If P = True and Q = False, what is P ∧ Q?</p><p class="text-xs opacity-60">Enter 'TRUE' or 'FALSE'</p></div>`,
+                answer: "RkFMU0U=" 
+            },
+            {
+                title: "SYSTEM DIAGNOSTICS: TRUTH TABLES",
+                badge: "DIAG 02",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 2:</strong> How many rows evaluate to TRUE for (P ∨ Q) ∧ R?</p><p class="text-xs opacity-60">Enter the numeric count.</p></div>`,
+                answer: "Mw==" 
+            },
+            {
+                title: "SYSTEM DIAGNOSTICS: MODULAR CRYPTO",
+                badge: "DIAG 03",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 3:</strong> Find (5^202) mod 4.</p></div>`,
+                answer: "MQ==" 
+            },
+            {
+                title: "SYSTEM DIAGNOSTICS: SET VAULT",
+                badge: "DIAG 04",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 4:</strong> Let A = {1, 2, 3, 4, 5, 6} and B = {2, 4, 6, 8}. Find |A ∩ B|.</p></div>`,
+                answer: "Mw==" 
+            },
+            {
+                title: "SYSTEM DIAGNOSTICS: EQUIVALENCE",
+                badge: "DIAG 05",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 5:</strong> Which is equivalent to ¬(P ∧ Q)?</p><p class="text-[11px] font-bold">A: ¬P ∨ ¬Q | B: ¬P ∧ ¬Q | C: P ∨ Q | D: P ∧ Q</p><p class="text-xs opacity-60">Enter the letter A, B, C, or D.</p></div>`,
+                answer: "QQ==" 
+            },
+            {
+                title: "SYSTEM DIAGNOSTICS: BINARY GATES",
+                badge: "DIAG 06",
+                instructions: `<div class="space-y-4"><p><strong>Puzzle 6:</strong> Convert 11010₂ to decimal.</p></div>`,
+                answer: "MjY=" 
+            },
+            {
+                title: "HARDWARE LOGIC CHECK",
+                badge: "PHASE 01",
+                instructions: `
+                    <div class="space-y-4">
+                        <p class="italic text-[#deff9a]/80">"Trace the status pins through the schematic."</p>
+                        <div class="bg-black/40 p-3 border border-[#deff9a]/20 text-xs">
+                            <p class="font-bold mb-1">INPUT KEY: A=1, B=0, C=1, D=1</p>
+                            <p>BIT 1: (A AND B) OR C</p>
+                            <p>BIT 2: (NOT B) AND D</p>
+                            <p>BIT 3: NOT (A XOR C)</p>
+                            <p>BIT 4: (D OR B) AND A</p>
+                        </div>
+                    </div>
+                `,
+                answer: "MTExMQ==" 
+            },
+            {
+                title: "GHOST IN THE MACHINE",
+                badge: "PHASE 02",
+                instructions: `
+                    <div class="space-y-4">
+                        <p class="italic text-[#deff9a]/80">"Scrub the Git logs."</p>
+                        <a href="https://github.com/Sravya-Pogiri/nexus-server-core" target="_blank" class="underline block text-blue-400 text-xs">github.com/Sravya-Pogiri/nexus-server-core</a>
+                        <p class="text-xs">Find the removed key in 'config_loader.py' commit history.</p>
+                    </div>
+                `,
+                answer: "NDQtREVMVEEtNzcy" 
+            },
+            {
+                title: "INFRASTRUCTURE BRIDGE",
+                badge: "PHASE 03",
+                instructions: `<p class="text-xs">Trace the port mapping grid. What character is formed?</p>`,
+                answer: "OA==" // 8
+            },
+            {
+                title: "KERNEL KORE PATCH",
+                badge: "PHASE 04",
+                instructions: `
+                    <div class="space-y-4">
+                        <p class="font-bold">PROBLEM: CONTAINS DUPLICATE</p>
+                        <p class="text-xs opacity-80">Complete the function below. It must return <code class="text-white">true</code> if the array <code class="text-white">nums</code> has any duplicates, <code class="text-white">false</code> otherwise.</p>
+                        <p class="text-xs text-[#deff9a]">TESTING AGAINST: [1, 5, 9, 12, 1, 3]</p>
+                    </div>
+                `,
+                isCode: true,
+                answer: "" 
+            }
+        ];
+
+        function updateSystemTime() {
+            const now = new Date();
+            document.getElementById('system-time').innerText = `SYS_TIME: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+        setInterval(updateSystemTime, 1000);
+
+        function startGame() {
+            teamId = document.getElementById('team-name').value.trim();
+            if (!teamId) return;
+            startTime = new Date();
+            document.getElementById('setup-section').classList.add('hidden');
+            document.getElementById('puzzle-section').classList.remove('hidden');
+            document.getElementById('timer-display').classList.remove('hidden');
+            
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                const elapsed = new Date(now - startTime);
+                document.getElementById('timer-display').innerText = elapsed.toISOString().substr(14, 5);
+            }, 1000);
+            
+            loadPuzzle();
+        }
+
+        function loadPuzzle() {
+            if (isLocked) return;
+            const p = puzzles[currentPhase];
+            document.getElementById('phase-badge').innerText = p.badge;
+            document.getElementById('puzzle-title').innerText = p.title;
+            document.getElementById('puzzle-content').innerHTML = p.instructions;
+            document.getElementById('feedback').innerText = "";
+            
+            const slot = document.getElementById('input-slot');
+            if (p.isCode) {
+                document.getElementById('input-label').innerText = "WRITE JAVASCRIPT PATCH:";
+                slot.innerHTML = `<textarea id="puzzle-code" class="code-editor" spellcheck="false">function containsDuplicate(nums) {\n  // Write your code here\n  \n}</textarea>`;
+                document.getElementById('submit-btn').innerText = "COMPILE & EXECUTE";
+            } else {
+                document.getElementById('input-label').innerText = "ENTER DECRYPTION KEY:";
+                slot.innerHTML = `<input type="text" id="puzzle-input" class="bg-transparent border-b-2 border-[#deff9a] w-full p-2 text-xl font-bold tracking-widest uppercase" autocomplete="off">`;
+                document.getElementById('submit-btn').innerText = "SUBMIT HANDSHAKE";
+                document.getElementById('puzzle-input').focus();
+                
+                document.getElementById('puzzle-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkAnswer();
+                });
+            }
+        }
+
+        function triggerLockout() {
+            isLocked = true;
+            let secondsRemaining = 90;
+            document.getElementById('puzzle-ui-container').classList.add('lockout-active');
+            document.getElementById('lockout-notice').classList.remove('hidden');
+            document.getElementById('submit-btn').disabled = true;
+
+            lockoutInterval = setInterval(() => {
+                secondsRemaining--;
+                const mins = Math.floor(secondsRemaining / 60);
+                const secs = secondsRemaining % 60;
+                document.getElementById('lockout-timer').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (secondsRemaining <= 0) {
+                    clearInterval(lockoutInterval);
+                    isLocked = false;
+                    document.getElementById('puzzle-ui-container').classList.remove('lockout-active');
+                    document.getElementById('lockout-notice').classList.add('hidden');
+                    document.getElementById('submit-btn').disabled = false;
+                    document.getElementById('feedback').innerText = "> SYSTEM REBOOTED. READY FOR INPUT.";
+                    document.getElementById('feedback').className = "text-blue-400";
+                    
+                    const input = document.getElementById('puzzle-input');
+                    if (input) input.focus();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            if (isLocked) return;
+            
+            const p = puzzles[currentPhase];
+            const feedback = document.getElementById('feedback');
+            let isCorrect = false;
+
+            if (p.isCode) {
+                const code = document.getElementById('puzzle-code').value;
+                try {
+                    const testArray = [1, 5, 9, 12, 1, 3];
+                    const userFunc = new Function('nums', code + '\n return containsDuplicate(nums);');
+                    const result = userFunc(testArray);
+                    
+                    const negativeTest = [1, 2, 3];
+                    const negativeResult = userFunc(negativeTest);
+
+                    if (result === true && negativeResult === false) {
+                        isCorrect = true;
+                    } else {
+                        isCorrect = false;
+                    }
+                } catch (e) {
+                    isCorrect = false;
+                    feedback.innerText = "SYNTAX ERROR: " + e.message.substring(0, 30);
+                }
+            } else {
+                const val = document.getElementById('puzzle-input').value.trim().toUpperCase();
+                // We decode the stored answer before comparing
+                const decodedAnswer = atob(p.answer).toUpperCase();
+                isCorrect = (val === decodedAnswer);
+            }
+
+            if (isCorrect) {
+                currentPhase++;
+                feedback.className = "text-green-400 fade-in";
+                feedback.innerText = "> HANDSHAKE ACCEPTED.";
+                setTimeout(() => {
+                    if (currentPhase >= puzzles.length) {
+                        showVictory();
+                    } else {
+                        loadPuzzle();
+                    }
+                }, 800);
+            } else {
+                feedback.className = "text-red-500 animate-pulse";
+                feedback.innerText = "> FATAL ERROR: BRUTE FORCE DETECTED. REBOOTING...";
+                triggerLockout();
+            }
+        }
+
+        function showVictory() {
+            clearInterval(timerInterval);
+            const endTime = new Date();
+            const diff = new Date(endTime - startTime);
+            const timeStr = diff.toISOString().substr(11, 8);
+            document.getElementById('puzzle-section').classList.add('hidden');
+            document.getElementById('timer-display').classList.add('hidden');
+            document.getElementById('victory-section').classList.remove('hidden');
+            document.getElementById('final-time').innerText = timeStr;
+            document.getElementById('team-record').innerText = `TEAM_ID: ${teamId.toUpperCase()}`;
+        }
+    </script>
+</body>
+</html>
